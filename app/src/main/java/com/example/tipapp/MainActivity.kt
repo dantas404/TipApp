@@ -32,6 +32,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.text.input.KeyboardType
+import java.util.Locale
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -52,6 +53,9 @@ class MainActivity : ComponentActivity() {
 
 @Composable
 fun Layout(){
+    var amount by remember { mutableStateOf("") }
+    val total:Double = amount.toDoubleOrNull() ?: 0.00
+    val tip = calculate(total)
     Column(
         modifier = Modifier
             .statusBarsPadding()
@@ -66,11 +70,14 @@ fun Layout(){
                 .padding(bottom = 16.dp, top = 40.dp)
                 .align(alignment = Alignment.Start)
         )
-        NumberField(modifier = Modifier
+        NumberField(
+            value = amount,
+            onValueChange = { amount = it },
+            modifier = Modifier
             .padding(bottom = 32.dp)
             .fillMaxWidth())
         Text(
-            text = stringResource(R.string.tip_amount, "R$0,00"),
+            text = stringResource(R.string.tip_amount, tip),
             style = MaterialTheme.typography.displaySmall
         )
         Spacer(modifier = Modifier.height(150.dp))
@@ -78,15 +85,13 @@ fun Layout(){
 }
 
 @Composable
-fun NumberField(modifier:Modifier = Modifier){
-    var amount by remember { mutableStateOf("") }
-    val total:Double = amount.toDoubleOrNull() ?: 0.00
-    val tip = calculate(total)
+fun NumberField(value:String, onValueChange: (String) -> Unit, modifier:Modifier = Modifier){
+
     TextField(
         label = { Text(stringResource(R.string.bill_amount))},
-        value = amount,
+        value = value,
         singleLine = true,
-        onValueChange = {amount = it},
+        onValueChange = onValueChange,
         keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
         modifier = modifier
     )
@@ -94,5 +99,5 @@ fun NumberField(modifier:Modifier = Modifier){
 
 private fun calculate(amount:Double, percent:Double = 10.0):String{
     val tip = percent / 100 * amount
-    return NumberFormat.getCurrencyInstance().format(tip)
+    return NumberFormat.getCurrencyInstance(Locale("pt","br")).format(tip)
 }
